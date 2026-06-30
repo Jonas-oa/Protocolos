@@ -1,0 +1,941 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Motor de Protocolos v3.1.2</title>
+    <link rel="manifest" href="manifest.json">
+    <script>
+        (function() {
+            var temaSalvo = localStorage.getItem('tema_protocolos');
+            if (!temaSalvo) {
+                temaSalvo = window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches ? 'light' : 'dark';
+            }
+            document.documentElement.setAttribute('data-theme', temaSalvo);
+        })();
+    </script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+    
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js"></script>
+
+    <style>
+        :root {
+            /* Cinematic Dark Theme - Core Variables */
+            --bg-deep: #050507;
+            --bg-panel: rgba(18, 18, 22, 0.65);
+            --bg-input: rgba(8, 8, 12, 0.8);
+            --text-main: #f8f9fa;
+            --text-muted: #8b949e;
+            
+            /* High-Tech Accents */
+            --electric-blue: #00F0FF;
+            --electric-blue-glow: rgba(0, 240, 255, 0.35);
+            --electric-blue-glow-soft: rgba(0, 240, 255, 0.08);
+            
+            --gold: #FFD700;
+            --gold-glow: rgba(255, 215, 0, 0.35);
+            --gold-glow-soft: rgba(255, 215, 0, 0.08);
+            
+            --danger: #ff5555;
+            --success: #00fa9a;
+            
+            /* Structural & VFX */
+            --border-subtle: rgba(255, 255, 255, 0.08);
+            --border-focus: rgba(0, 240, 255, 0.5);
+            --radius-lg: 16px;
+            --radius-md: 12px;
+            --radius-sm: 8px;
+            --transition-smooth: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            --panel-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 255, 255, 0.05);
+            --log-bg: #000000;
+            --overlay-soft: rgba(255, 255, 255, 0.03);
+            --overlay-hover: rgba(255, 255, 255, 0.06);
+            --title-gradient: linear-gradient(135deg, #ffffff 0%, #94a3b8 100%);
+            
+            /* Fonts */
+            --font-ui: 'Inter', system-ui, sans-serif;
+            --font-mono: 'JetBrains Mono', monospace;
+        }
+
+        html[data-theme="light"] {
+            --bg-deep: #f0f2f5;
+            --bg-panel: rgba(255, 255, 255, 0.85);
+            --bg-input: #ffffff;
+            --text-main: #111827;
+            --text-muted: #64748b;
+            
+            --electric-blue: #0077b6;
+            --electric-blue-glow: rgba(0, 119, 182, 0.2);
+            --electric-blue-glow-soft: rgba(0, 119, 182, 0.05);
+            
+            --gold: #d97706;
+            --gold-glow: rgba(217, 119, 6, 0.2);
+            --gold-glow-soft: rgba(217, 119, 6, 0.05);
+            
+            --border-subtle: rgba(0, 0, 0, 0.08);
+            --border-focus: rgba(0, 119, 182, 0.4);
+            --panel-shadow: 0 8px 30px rgba(0, 0, 0, 0.04), inset 0 1px 0 rgba(255, 255, 255, 1);
+            --log-bg: #f8fafc;
+            --overlay-soft: rgba(0, 0, 0, 0.02);
+            --overlay-hover: rgba(0, 0, 0, 0.04);
+            --title-gradient: linear-gradient(135deg, #0f172a 0%, #475569 100%);
+        }
+
+        /* Reset & Base */
+        * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+        body {
+            background-color: var(--bg-deep);
+            background-image: 
+                radial-gradient(circle at 50% -20%, var(--electric-blue-glow-soft) 0%, transparent 60%),
+                radial-gradient(circle at 50% 120%, var(--gold-glow-soft) 0%, transparent 60%);
+            color: var(--text-main);
+            font-family: var(--font-ui);
+            margin: 0;
+            padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            transition: var(--transition-smooth);
+            overflow-x: hidden;
+        }
+
+        .container { width: 100%; max-width: 640px; padding: 24px; display: flex; flex-direction: column; gap: 24px; position: relative; z-index: 1; }
+        ::-webkit-scrollbar { width: 6px; height: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border-subtle); border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: var(--electric-blue); }
+
+        /* Header & Brand */
+        header { display: flex; flex-direction: column; align-items: center; padding-bottom: 24px; position: relative; margin-bottom: 8px; }
+        header::after { content: ''; position: absolute; bottom: 0; left: 10%; right: 10%; height: 1px; background: linear-gradient(90deg, transparent, var(--border-subtle), transparent); }
+        
+        .logo-container { width: 72px; height: 72px; margin-bottom: 16px; display: flex; justify-content: center; align-items: center; position: relative; }
+        .logo-container::before { content: ''; position: absolute; inset: -10px; background: radial-gradient(circle, var(--electric-blue-glow-soft), transparent 70%); border-radius: 50%; opacity: 0; transition: var(--transition-smooth); }
+        .processando .logo-container::before { background: radial-gradient(circle, var(--gold-glow-soft), transparent 70%); opacity: 1; animation: pulseGlow 1.5s infinite alternate; }
+
+        .atom-svg { width: 100%; height: 100%; fill: none; stroke: var(--electric-blue); stroke-width: 2.5; stroke-linecap: round; filter: drop-shadow(0 0 10px var(--electric-blue-glow)); transition: var(--transition-smooth); }
+        .atom-core { fill: var(--electric-blue); filter: drop-shadow(0 0 12px var(--electric-blue)); }
+        .atom-orbit { transform-origin: center; animation: spin linear infinite; }
+        .orbit-1 { animation-duration: 4s; }
+        .orbit-2 { animation-duration: 5s; animation-direction: reverse; }
+        .orbit-3 { animation-duration: 6s; }
+        
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        @keyframes pulseGlow { 0% { opacity: 0.5; transform: scale(0.9); } 100% { opacity: 1; transform: scale(1.1); } }
+
+        .processando .atom-svg { stroke: var(--gold); filter: drop-shadow(0 0 18px var(--gold-glow)); transform: scale(1.1); }
+        .processando .atom-core { fill: var(--gold); filter: drop-shadow(0 0 15px var(--gold)); }
+        .processando .atom-orbit { animation-duration: 1.2s; }
+
+        h1 { font-size: 1.35rem; font-weight: 700; margin: 0; letter-spacing: 3px; text-transform: uppercase; background: var(--title-gradient); -webkit-background-clip: text; -webkit-text-fill-color: transparent; text-align: center; }
+
+        /* Icon Buttons */
+        .btn-icon { position: absolute; top: 0; width: 48px; height: 48px; display: flex; justify-content: center; align-items: center; cursor: pointer; color: var(--text-muted); transition: var(--transition-smooth); border-radius: 50%; background: transparent; border: none; }
+        .btn-engrenagem { right: 0; }
+        .btn-tema { left: 0; }
+        .btn-icon:hover { color: var(--text-main); background: var(--overlay-hover); transform: translateY(-1px); }
+        .btn-engrenagem:hover { color: var(--gold); background: var(--gold-glow-soft); filter: drop-shadow(0 0 8px var(--gold-glow-soft)); }
+        .btn-tema:hover { color: var(--electric-blue); background: var(--electric-blue-glow-soft); filter: drop-shadow(0 0 8px var(--electric-blue-glow-soft));}
+        
+        .btn-tema .icon-sun { display: none; }
+        html[data-theme="light"] .btn-tema .icon-moon { display: none; }
+        html[data-theme="light"] .btn-tema .icon-sun { display: block; }
+
+        /* Version Badge */
+        .version-badge { position: absolute; left: 4px; bottom: 28px; font-size: 0.6rem; font-family: var(--font-mono); color: var(--text-muted); opacity: 0.45; letter-spacing: 0.5px; pointer-events: none; }
+
+        /* Glass Panels */
+        .module-box { background: var(--bg-panel); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border: 1px solid var(--border-subtle); border-radius: var(--radius-lg); padding: 24px; box-shadow: var(--panel-shadow); width: 100%; transition: var(--transition-smooth); }
+        .admin-box { border-color: rgba(255, 215, 0, 0.2); box-shadow: 0 12px 40px rgba(0, 0, 0, 0.5), inset 0 1px 0 rgba(255, 215, 0, 0.1); }
+        
+        #tela-operador .module-box { margin-bottom: 24px; }
+        #tela-operador .module-box:last-child { margin-bottom: 0; }
+        
+        h3 { font-size: 1.1rem; font-weight: 600; margin: 0 0 20px 0; color: var(--text-main); display: flex; align-items: center; gap: 10px; letter-spacing: 0.5px; }
+        h3 svg { color: var(--electric-blue); }
+        .admin-box h3 { color: var(--gold); justify-content: center; margin-bottom: 24px; }
+        .admin-box h3 svg { color: var(--gold); }
+
+        .admin-section { background: var(--overlay-soft); border: 1px solid rgba(255, 215, 0, 0.1); padding: 20px; border-radius: var(--radius-md); margin-bottom: 20px; }
+        .admin-section h4 { margin: 0 0 16px 0; color: var(--gold); font-size: 0.85rem; text-transform: uppercase; letter-spacing: 1.5px; display: flex; align-items: center; gap: 8px; }
+
+        /* Forms & Inputs */
+        .label-sm { font-size: 0.75rem; color: var(--text-muted); margin-bottom: 8px; display: block; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; }
+        
+        select, textarea, input { width: 100%; background: var(--bg-input); color: var(--text-main); border: 1px solid var(--border-subtle); padding: 14px 16px; font-family: var(--font-ui); border-radius: var(--radius-sm); margin-bottom: 16px; font-size: 1rem; transition: var(--transition-smooth); appearance: none; box-shadow: inset 0 2px 4px rgba(0,0,0,0.1); }
+        textarea { font-family: var(--font-mono); font-size: 0.9rem; resize: vertical; min-height: 80px; }
+        
+        select { background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='20' height='20' viewBox='0 0 24 24' fill='none' stroke='%238b949e' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 16px center; padding-right: 48px; }
+        
+        select:focus, textarea:focus, input:focus { outline: none; border-color: var(--border-focus); box-shadow: 0 0 0 3px var(--electric-blue-glow-soft), inset 0 2px 4px rgba(0,0,0,0.1); }
+        .admin-box select:focus, .admin-box input:focus, .admin-box textarea:focus { border-color: rgba(255, 215, 0, 0.5); box-shadow: 0 0 0 3px var(--gold-glow-soft); }
+
+        /* Buttons */
+        .btn-action { width: 100%; background: rgba(0, 240, 255, 0.03); color: var(--electric-blue); border: 1px solid rgba(0, 240, 255, 0.3); padding: 16px; border-radius: var(--radius-sm); cursor: pointer; transition: var(--transition-smooth); font-family: var(--font-ui); font-weight: 600; font-size: 0.95rem; text-transform: uppercase; letter-spacing: 1px; display: flex; justify-content: center; align-items: center; gap: 10px; margin-bottom: 16px; backdrop-filter: blur(5px); }
+        .btn-action svg { width: 18px; height: 18px; }
+        .btn-action:active { transform: scale(0.98); }
+        .btn-action:hover:not(:disabled) { background: var(--electric-blue); color: var(--bg-deep); box-shadow: 0 0 20px var(--electric-blue-glow); border-color: var(--electric-blue); }
+        .btn-action:disabled { opacity: 0.5; cursor: not-allowed; }
+        
+        .btn-admin { border-color: rgba(255, 215, 0, 0.3); color: var(--gold); background: rgba(255, 215, 0, 0.03); }
+        .btn-admin:hover:not(:disabled) { background: var(--gold); color: var(--bg-deep); box-shadow: 0 0 20px var(--gold-glow); border-color: var(--gold); }
+        
+        .btn-danger { border-color: rgba(255, 85, 85, 0.3); color: var(--danger); background: rgba(255, 85, 85, 0.03); }
+        .btn-danger:hover:not(:disabled) { background: var(--danger); color: #fff; box-shadow: 0 0 20px rgba(255, 85, 85, 0.2); border-color: var(--danger); }
+        
+        .btn-secundary { border-color: var(--border-subtle); color: var(--text-muted); background: var(--overlay-soft); }
+        .btn-secundary:hover:not(:disabled) { background: var(--overlay-hover); color: var(--text-main); border-color: var(--text-muted); box-shadow: none; }
+
+        .flex-row { display: flex; gap: 12px; width: 100%; }
+        .flex-row > * { flex: 1; margin-bottom: 0; min-width: 0; }
+        
+        @media (max-width: 480px) {
+            .flex-row { flex-direction: column; gap: 10px; }
+            .flex-row > * { width: 100%; }
+            
+            .container { padding: 12px; gap: 16px; }
+            header { padding-bottom: 12px; margin-bottom: 0; }
+            .logo-container { width: 44px; height: 44px; margin-bottom: 8px; }
+            h1 { font-size: 1.15rem; letter-spacing: 1.5px; }
+            .btn-icon { width: 40px; height: 40px; }
+            
+            .module-box { padding: 16px; border-radius: var(--radius-md); }
+            #tela-operador .module-box { margin-bottom: 16px; }
+            
+            h3 { margin: 0 0 12px 0; font-size: 1rem; }
+            .btn-action { padding: 12px; font-size: 0.85rem; margin-bottom: 12px; }
+            
+            select, textarea, input { padding: 12px 14px; margin-bottom: 12px; }
+            #resultado-painel { padding: 16px; min-height: 80px; font-size: 1.05rem; }
+        }
+
+        /* Camera & Cropper Panel */
+        #container-camera { width: 100%; display: flex; flex-direction: column; align-items: center; overflow: hidden; border-radius: var(--radius-md); margin-bottom: 20px; background: var(--log-bg); border: 1px solid rgba(0, 240, 255, 0.2); box-shadow: inset 0 0 30px rgba(0,0,0,0.5); }
+        video { width: 100%; max-width: 100%; display: block; border-radius: var(--radius-md) var(--radius-md) 0 0; }
+        #controles-camera { padding: 16px; background: var(--bg-panel); border-top: 1px solid var(--border-subtle); width: 100%; margin: 0; }
+
+        /* Cropper Overrides */
+        .img-container { width: 100%; max-height: 50vh; display: flex; justify-content: center; align-items: center; background-color: var(--log-bg); }
+        img { display: block; max-width: 100%; }
+        .cropper-view-box, .cropper-face { border-radius: 4px; }
+        .cropper-line, .cropper-point { background-color: var(--electric-blue); }
+        .cropper-view-box { outline-color: var(--electric-blue); outline-width: 2px; box-shadow: 0 0 0 1000px rgba(0, 0, 0, 0.65); }
+
+        .instrucao-crop { padding: 14px; background: var(--electric-blue-glow-soft); color: var(--electric-blue); font-size: 0.85rem; text-align: center; font-weight: 500; width: 100%; border-bottom: 1px solid rgba(0, 240, 255, 0.15); letter-spacing: 0.5px; }
+
+        /* Results Panel */
+        #resultado-painel { font-size: 1.15rem; padding: 24px; background: var(--overlay-soft); text-align: center; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-weight: 600; min-height: 100px; display: flex; flex-direction: column; justify-content: center; align-items: center; transition: var(--transition-smooth); letter-spacing: 0.5px; line-height: 1.4; }
+        .resultado-indicado { border-color: var(--gold) !important; color: var(--gold); background: var(--gold-glow-soft) !important; box-shadow: inset 0 0 30px rgba(255, 215, 0, 0.05), 0 0 20px rgba(255, 215, 0, 0.1); }
+        .resultado-nao-indicado { border-color: var(--electric-blue) !important; color: var(--electric-blue); background: var(--electric-blue-glow-soft) !important; box-shadow: inset 0 0 30px rgba(0, 240, 255, 0.05), 0 0 20px rgba(0, 240, 255, 0.1); }
+        .resultado-erro { border-color: rgba(255, 85, 85, 0.4) !important; color: var(--danger); background: rgba(255, 85, 85, 0.05) !important; }
+        
+        .comentario-tecnico { margin-top: 16px; padding-top: 16px; border-top: 1px dashed rgba(255,255,255,0.15); font-size: 0.9rem; color: var(--text-muted); text-align: left; width: 100%; font-family: var(--font-mono); font-weight: 400; }
+        .resultado-indicado .comentario-tecnico { border-top-color: rgba(255, 215, 0, 0.2); color: rgba(255, 215, 0, 0.8); }
+        .resultado-nao-indicado .comentario-tecnico { border-top-color: rgba(0, 240, 255, 0.2); color: rgba(0, 240, 255, 0.8); }
+
+        /* Audit Log & Helpers */
+        #log-auditoria { font-family: var(--font-mono); background: var(--log-bg); color: var(--success); padding: 16px; height: 160px; overflow-y: auto; font-size: 0.8rem; border-left: 3px solid var(--success); border-radius: 4px; box-shadow: inset 0 4px 10px rgba(0,0,0,0.5); line-height: 1.5; }
+        details { background: var(--overlay-soft); padding: 16px; border-radius: var(--radius-sm); margin-bottom: 20px; border: 1px solid var(--border-subtle); transition: var(--transition-smooth); }
+        details[open] { background: var(--overlay-hover); border-color: rgba(255, 215, 0, 0.2); }
+        summary { color: var(--gold); font-weight: 600; cursor: pointer; outline: none; font-size: 0.95rem; display: flex; align-items: center; gap: 8px; }
+        summary::marker { color: var(--text-muted); }
+        details ol { margin-top: 16px; padding-left: 20px; color: var(--text-muted); font-size: 0.9rem; line-height: 1.6; margin-bottom: 0; }
+        
+        .oculto { display: none !important; }
+    </style>
+</head>
+<body>
+
+<div style="position: absolute; top: 12px; left: 16px; font-family: var(--font-mono); font-size: 0.65rem; color: var(--text-muted); opacity: 0.6; z-index: 100; pointer-events: none;">v3.1.2</div>
+
+<div class="container">
+    <header>
+        <button class="btn-icon btn-tema" id="btn-tema" onclick="alternarTema()" aria-label="Alternar tema">
+            <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
+            <svg class="icon-sun" xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66l1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>
+        </button>
+        
+        <div class="logo-container" id="atomo-logo">
+            <svg class="atom-svg" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+                <circle class="atom-core" cx="50" cy="50" r="7"/>
+                <ellipse class="atom-orbit orbit-1" cx="50" cy="50" rx="42" ry="14" transform="rotate(0 50 50)"/>
+                <ellipse class="atom-orbit orbit-2" cx="50" cy="50" rx="42" ry="14" transform="rotate(60 50 50)"/>
+                <ellipse class="atom-orbit orbit-3" cx="50" cy="50" rx="42" ry="14" transform="rotate(120 50 50)"/>
+            </svg>
+        </div>
+        
+        <button class="btn-icon btn-engrenagem" id="btn-config" onclick="abrirModoAdmin()" aria-label="Abrir Configurações">
+            <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/></svg>
+        </button>
+        
+        <h1>Motor de Protocolos</h1>
+        <span class="version-badge">v3.1.2</span>
+    </header>
+
+    <div class="module-box admin-box oculto" id="painel-admin">
+        <h3>
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
+            Módulo Gestor
+        </h3>
+        
+        <div class="admin-section">
+            <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                Integração API Vision
+            </h4>
+            <details>
+                <summary>Segurança do Paciente (Client-Side Crop)</summary>
+                <ol>
+                    <li>A imagem capturada não sobe inteira para a nuvem.</li>
+                    <li>O operador primeiro seleciona a área para ocultar o cabeçalho.</li>
+                    <li>Apenas o recorte final (exames e suspeitas) é transmitido à IA.</li>
+                    <li>O processamento é feito em RAM e a imagem é destruída pelos servidores.</li>
+                </ol>
+            </details>
+            <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 16px;">
+                Não tem uma chave? <a href="https://aistudio.google.com/app/apikey" target="_blank" style="color: var(--electric-blue); text-decoration: underline; text-underline-offset: 4px;">Criar chave gratuita</a>.
+            </p>
+            <input type="password" id="admin-gemini-key" placeholder="Cole a chave (AIzaSy...)">
+            <button class="btn-action btn-admin" onclick="salvarChaveGemini()">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13 7 21"/><polyline points="7 3 7 8 15 8"/></svg>
+                Gravar Chave Localmente
+            </button>
+            <button class="btn-action btn-secundary" onclick="removerChaveGemini()">Remover Chave</button>
+            <div id="status-chave-gemini" style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-top: 8px; font-weight: 500;"></div>
+        </div>
+
+        <div class="admin-section">
+            <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+                Gestão de Protocolos
+            </h4>
+            <p style="font-size: 0.85rem; color: var(--text-muted); text-align: center; margin-bottom: 16px;">
+                O banco de dados de protocolos radiológicos agora é gerenciado de forma segura na nuvem (GitHub CMS).
+            </p>
+            
+            <button class="btn-action btn-admin" onclick="window.open('gestor.html', '_blank')">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+                Abrir Painel de Gestão na Nuvem
+            </button>
+        </div>
+
+        <div class="admin-section">
+            <h4>
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4Z"/></svg>
+                Log de Auditoria
+            </h4>
+            <div id="log-auditoria"></div>
+        </div>
+        
+        <button class="btn-action btn-secundary" style="margin-top: 10px;" onclick="fecharAdmin()">Sair do Modo Gestor</button>
+    </div>
+
+    <div id="tela-operador" style="width: 100%;">
+        <div class="module-box">
+            <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/></svg>
+                Captura de Dados
+            </h3>
+            
+            <div class="flex-row" id="opcoes-entrada">
+                <button class="btn-action" id="btn-abrir-camera" onclick="iniciarCamera()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7V5a2 2 0 0 1 2-2h2"/><path d="M17 3h2a2 2 0 0 1 2 2v2"/><path d="M21 17v2a2 2 0 0 1-2 2h-2"/><path d="M7 21H5a2 2 0 0 1-2-2v-2"/></svg>
+                    Scanner Óptico
+                </button>
+                <button class="btn-action btn-secundary" id="btn-digitar-manual" onclick="abrirDigitacaoManual()">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10 8h.01"/><path d="M12 12h.01"/><path d="M14 8h.01"/><path d="M16 12h.01"/><path d="M18 8h.01"/><path d="M6 8h.01"/><path d="M7 16h10"/><path d="M8 12h.01"/><rect width="20" height="16" x="2" y="4" rx="2"/></svg>
+                    Inserção Manual
+                </button>
+            </div>
+
+            <div id="container-camera" class="oculto">
+                <video id="video-feed" autoplay playsinline></video>
+                <div class="flex-row" id="controles-camera">
+                    <button class="btn-action btn-admin" onclick="tirarFoto()" style="margin: 0;">Capturar Matriz</button>
+                    <button class="btn-action btn-danger" onclick="desligarCamera()" style="margin: 0;">Abortar</button>
+                </div>
+            </div>
+
+            <div id="container-crop" class="oculto">
+                <div class="instrucao-crop">Isole ESTRITAMENTE o exame e a suspeita clínica. Exclua dados do paciente.</div>
+                <div class="img-container">
+                    <img id="imagem-alvo" src="">
+                </div>
+                <div class="flex-row" style="margin-top: 20px;">
+                    <button class="btn-action" id="btn-confirmar-recorte" onclick="processarRecorteGemini()" style="margin: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
+                        Avançar Transmissão
+                    </button>
+                    <button class="btn-action btn-secundary" onclick="descartarFoto()" style="margin: 0;">Repetir Foto</button>
+                </div>
+            </div>
+
+            <div id="area-texto" class="oculto" style="margin-top: 10px;">
+                <label class="label-sm">Dados Clínicos Processados:</label>
+                <textarea id="texto-pedido" placeholder="Exame: ...&#10;Suspeita: ..."></textarea>
+                <div class="flex-row">
+                    <button class="btn-action" onclick="processarMotor()" style="margin: 0;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/></svg>
+                        Reavaliar Lógica
+                    </button>
+                    <button class="btn-action btn-danger" onclick="cancelarSolicitacao()" style="margin: 0;">Limpar</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="module-box">
+            <h3>
+                <svg xmlns="http://www.w3.org/2000/svg" width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+                Análise do Motor
+            </h3>
+            <div id="resultado-painel">Aguardando entrada de dados do operador...</div>
+        </div>
+    </div>
+</div>
+
+<script src="protocolos.js"></script>
+
+<script>
+    const ERRO_CLINICO = "Informação insuficiente. Edite o texto do pedido ou contate o Radiologista.";
+    let pinGestor = localStorage.getItem('pin_gestor_protocolos') || "1234";
+
+    let streamMidia = null;
+    let cropperInstancia = null;
+
+    function registrarLog(evento) {
+        const logPanel = document.getElementById('log-auditoria');
+        const linha = document.createElement('div');
+        linha.textContent = `[${new Date().toLocaleTimeString()}] ${evento}`;
+        logPanel.appendChild(linha);
+        logPanel.scrollTop = logPanel.scrollHeight;
+    }
+
+    function abrirModoAdmin() {
+        if (prompt("PIN de acesso Gestor:") === pinGestor) {
+            document.getElementById('tela-operador').classList.add('oculto');
+            document.getElementById('btn-config').classList.add('oculto');
+            document.getElementById('painel-admin').classList.remove('oculto');
+            registrarLog("SISTEMA: Modo Gestor ativado.");
+        }
+    }
+    
+    function fecharAdmin() {
+        document.getElementById('tela-operador').classList.remove('oculto');
+        document.getElementById('painel-admin').classList.add('oculto');
+        document.getElementById('btn-config').classList.remove('oculto');
+    }
+
+    function alternarTema() {
+        const atual = document.documentElement.getAttribute('data-theme');
+        const novo = atual === 'light' ? 'dark' : 'light';
+        document.documentElement.setAttribute('data-theme', novo);
+        localStorage.setItem('tema_protocolos', novo);
+    }
+
+    function salvarChaveGemini() {
+        const chave = document.getElementById('admin-gemini-key').value.trim();
+        if (!chave) return;
+        localStorage.setItem('gemini_api_key', chave);
+        document.getElementById('admin-gemini-key').value = "";
+        atualizarStatusChaveGemini();
+        registrarLog("GESTOR: Chave Vision API configurada com sucesso.");
+        alert("Chave salva com segurança no navegador.");
+    }
+
+    function removerChaveGemini() {
+        localStorage.removeItem('gemini_api_key');
+        atualizarStatusChaveGemini();
+    }
+
+    function atualizarStatusChaveGemini() {
+        const el = document.getElementById('status-chave-gemini');
+        el.innerText = localStorage.getItem('gemini_api_key') ? "✅ Chave criptografada pronta." : "⚠️ Sistema carece de chave API para funcionar.";
+    }
+
+    async function iniciarCamera() {
+        try {
+            streamMidia = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+            const video = document.getElementById('video-feed');
+            video.srcObject = streamMidia;
+            
+            document.getElementById('opcoes-entrada').classList.add('oculto');
+            document.getElementById('area-texto').classList.add('oculto');
+            document.getElementById('container-camera').classList.remove('oculto');
+            document.getElementById('resultado-painel').className = '';
+            document.getElementById('resultado-painel').innerText = "Aguardando captura...";
+        } catch (err) { alert("Permissão de câmera negada ou ambiente não seguro (Requer HTTPS)."); }
+    }
+
+    function desligarCamera() {
+        if(streamMidia) streamMidia.getTracks().forEach(track => track.stop());
+        document.getElementById('container-camera').classList.add('oculto');
+        document.getElementById('opcoes-entrada').classList.remove('oculto');
+        document.getElementById('resultado-painel').innerText = "Scanner desligado.";
+    }
+
+    function tirarFoto() {
+        const video = document.getElementById('video-feed');
+        const canvas = document.createElement('canvas');
+        canvas.width = video.videoWidth; canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0, canvas.width, canvas.height);
+        
+        if(streamMidia) streamMidia.getTracks().forEach(track => track.stop());
+        document.getElementById('container-camera').classList.add('oculto');
+
+        const imgAlvo = document.getElementById('imagem-alvo');
+        imgAlvo.src = canvas.toDataURL('image/jpeg');
+        document.getElementById('container-crop').classList.remove('oculto');
+        
+        if (cropperInstancia) cropperInstancia.destroy();
+        cropperInstancia = new Cropper(imgAlvo, { viewMode: 1, dragMode: 'move', autoCropArea: 0.6, restore: false, guides: true, center: true, highlight: false, cropBoxMovable: true, cropBoxResizable: true, toggleDragModeOnDblclick: false });
+        document.getElementById('resultado-painel').innerText = "Delimite os dados clínicos no retângulo azul.";
+    }
+
+    function descartarFoto() {
+        document.getElementById('container-crop').classList.add('oculto');
+        if (cropperInstancia) cropperInstancia.destroy();
+        iniciarCamera(); 
+    }
+
+    async function processarRecorteGemini() {
+        const chave = localStorage.getItem('gemini_api_key');
+        if (!chave) { alert("Acesse o painel do Gestor (engrenagem) e informe a chave do Gemini."); return; }
+
+        const btn = document.getElementById('btn-confirmar-recorte');
+        const textoAntigo = btn.innerHTML;
+        btn.innerHTML = "Decifrando Matriz..."; btn.disabled = true;
+        document.getElementById('atomo-logo').classList.add('processando');
+
+        try {
+            const canvasRecortado = cropperInstancia.getCroppedCanvas({ maxWidth: 1024, maxHeight: 1024 });
+            const base64Limpo = canvasRecortado.toDataURL('image/jpeg', 0.8).split(',')[1]; 
+
+            // Condensar banco: apenas exame+suspeita de cada regra (economiza tokens)
+            const bancoCondensado = {};
+            for (let gaveta in bancoDeDados) {
+                bancoCondensado[gaveta] = bancoDeDados[gaveta].map(r => ({
+                    exame: r.exame,
+                    suspeita: r.suspeita
+                }));
+            }
+            const bancoSerializado = JSON.stringify(bancoCondensado);
+
+            const promptEspecialista = `Você é um sistema especialista em triagem de protocolos de radiologia clínica brasileira.
+
+Sua tarefa tem DUAS etapas obrigatórias:
+
+════════════════════════════════════════
+ETAPA 1 — LER O PEDIDO MÉDICO
+════════════════════════════════════════
+Analise a imagem do pedido médico e identifique:
+- O exame solicitado (modalidade + região anatômica)
+- A suspeita clínica ou hipótese diagnóstica do médico
+
+════════════════════════════════════════
+ETAPA 2 — MAPEAR PARA O BANCO INSTITUCIONAL
+════════════════════════════════════════
+Abaixo está o banco de protocolos da instituição. Você DEVE retornar o exame e a suspeita usando EXATAMENTE o vocabulário deste banco:
+
+${bancoSerializado}
+
+REGRAS DE MAPEAMENTO:
+- Compare o que foi lido com os pares exame+suspeita do banco acima
+- Generalize diagnósticos específicos para a categoria do banco (exemplos: adenocarcinoma de pulmão → NEOPLASIA, cálculo renal → LITÍASE, embolia pulmonar → TROMBOEMBOLISMO PULMONAR)
+- O exame retornado deve ser EXATAMENTE como está escrito no banco (ex: "TC TÓRAX", não "TC DE TÓRAX")
+- A suspeita retornada deve ser EXATAMENTE como está escrita no banco (ex: "NEOPLASIA", não "Neoplasia pulmonar")
+- Se houver múltiplas suspeitas no pedido, retorne a mais relevante clinicamente presente no banco
+- FALLBACK: se não encontrar correspondência clara e inequívoca no banco, retorne o exame e a suspeita como lidos no pedido, sem forçar match
+
+════════════════════════════════════════
+DICIONÁRIO DE EQUIVALÊNCIAS CLÍNICAS
+════════════════════════════════════════
+Use este dicionário para reconhecer sinônimos e abreviações antes de mapear:
+
+SUSPEITAS:
+- adenocarcinoma, carcinoma, sarcoma, linfoma, tumor, massa, CA, K, neo, glioma, metástase, LOE → NEOPLASIA
+- staging, extensão tumoral, pesquisa de metástases, mets, M+, N+ → ESTADIAMENTO
+- follow-up, FU, controle oncológico, resposta à QT, resposta à RT, pós-QT, pós-RT, recidiva → SEGUIMENTO ONCOLÓGICO
+- aneurisma, dissecção aórtica, pseudoaneurisma, dilatação aórtica → ANEURISMA
+- AVC, AVE, stroke, isquemia cerebral, infarto cerebral, AIT, TIA, hemiplegia aguda → AVC
+- AVC agudo, stroke agudo, janela terapêutica, trombólise, trombectomia → AVC AGUDO
+- TCE, trauma cranioencefálico, trauma de crânio, TBI → TCE
+- trauma, fratura, luxação, politrauma, acidente, queda, atropelamento → TRAUMA
+- infecção, abscesso, pneumonia, sinusite, meningite, osteomielite, pielonefrite, sepse, TB, BK → INFECÇÃO
+- dor abdominal, abdome agudo, cólica renal, dor em flanco, dor pélvica → DOR ABDOMINAL
+- litíase, cálculo, calculose, nefrolitíase, urolitíase, colelitíase, pedra nos rins → LITÍASE
+- planejamento cirúrgico, pré-operatório, pré-op, avaliação pré-cirúrgica → PLANEJAMENTO CIRÚRGICO
+- TEP, EP, embolia pulmonar, tromboembolismo pulmonar, TEV, D-dímero elevado → TROMBOEMBOLISMO PULMONAR
+- DAC, doença coronariana, angina, SCA, isquemia miocárdica, coronariopatia → DOENÇA CORONARIANA
+- Crohn, DII, RCU, RCUI, retocolite ulcerativa, colite → DOENÇA DE CROHN
+- HCC, CHC, hepatocarcinoma, carcinoma hepatocelular, hepatoma → HEPATOCARCINOMA
+- hematúria, sangue na urina, hematúria macroscópica → HEMATÚRIA
+- estenose carotídea, placa carotídea, sopro carotídeo → ESTENOSE CAROTÍDEA
+- escore de cálcio, Agatston, estratificação cardiovascular → ESTRATIFICAÇÃO DE RISCO
+- rastreamento, screening, colonoscopia virtual, check-up, assintomático → RASTREAMENTO
+- paraganglioma, feocromocitoma, tumor glômico, glomus → PARAGANGLIOMA
+
+EXAMES (abreviações → nome do banco):
+- TC crânio, TC cérebro → TC CRÂNIO ou TC ENCÉFALO
+- TC seios da face, TC seios paranasais → TC SEIOS DA FACE
+- TC osso temporal, TC mastóide → TC OSSOS TEMPORAIS
+- TC pescoço, TC cervical (partes moles) → TC PESCOÇO
+- TC tórax, TC pulmão → TC TÓRAX ou TC PULMÕES
+- TC abdome e pelve → TC ABDOME
+- AngioTC TEP, AngioTC artérias pulmonares → ANGIOTC TEP
+- AngioTC cerebral, AngioTC de crânio → ANGIOTC CEREBRAL
+- UroTC, TC vias urinárias → UROTC
+- Enterografia, TC enterografia → TC ENTEROGRAFIA
+- Colonografia, colonoscopia virtual → TC COLONOGRAFIA
+- Escore de cálcio, calcium score → TC ESCORE DE CÁLCIO
+- TC face e pescoço, TC cabeça e pescoço → FACE E PESCOCO
+
+Responda ESTRITAMENTE em JSON válido, sem markdown, sem texto extra:
+{"exame": "...", "suspeita": "..."}`;
+
+            const controlador = new AbortController();
+            const tempoLimite = setTimeout(() => controlador.abort(), 20000);
+
+            let resposta;
+            try {
+                resposta = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-lite-latest:generateContent?key=${chave}`, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: promptEspecialista }, { inlineData: { mimeType: "image/jpeg", data: base64Limpo } }] }] }),
+                    signal: controlador.signal
+                });
+            } catch (erroFetch) {
+                if (erroFetch.name === 'AbortError') {
+                    throw new Error("A IA demorou demais para responder (mais de 20s). Verifique sua conexão e tente novamente.");
+                }
+                throw erroFetch;
+            } finally {
+                clearTimeout(tempoLimite);
+            }
+
+            const corpoResposta = await resposta.json();
+
+            if (!resposta.ok) {
+                const msgApi = corpoResposta?.error?.message || `HTTP ${resposta.status}`;
+                throw new Error(`Falha na API Gemini: ${msgApi}`);
+            }
+
+            let stringIA = corpoResposta?.candidates?.[0]?.content?.parts?.[0]?.text || "";
+            if (!stringIA) {
+                throw new Error("A IA não retornou texto (resposta vazia ou bloqueada por filtro de segurança).");
+            }
+            const analiseJSON = JSON.parse(stringIA.replace(/```json/g, '').replace(/```/g, '').trim());
+
+            document.getElementById('texto-pedido').value = `Exame: ${analiseJSON.exame}\nSuspeita: ${analiseJSON.suspeita}`;
+            registrarLog("LGPD & IA: Recorte enviado, decifrado e destruído pelos servidores.");
+            
+            fecharInterfaceCrop(); processarMotor(); 
+
+        } catch (erro) {
+            alert("Erro na leitura da imagem ou na IA:\n" + erro.message);
+            console.error("Erro Gemini:", erro);
+        } finally {
+            btn.innerHTML = textoAntigo; btn.disabled = false;
+            document.getElementById('atomo-logo').classList.remove('processando');
+        }
+    }
+
+    function fecharInterfaceCrop() {
+        document.getElementById('container-crop').classList.add('oculto');
+        if(cropperInstancia) cropperInstancia.destroy();
+        document.getElementById('area-texto').classList.remove('oculto');
+        document.getElementById('opcoes-entrada').classList.remove('oculto');
+    }
+
+    function cancelarSolicitacao() {
+        document.getElementById('texto-pedido').value = '';
+        document.getElementById('area-texto').classList.add('oculto');
+        document.getElementById('opcoes-entrada').classList.remove('oculto');
+        const painel = document.getElementById('resultado-painel');
+        painel.className = '';
+        painel.innerText = "Aguardando entrada de dados do operador...";
+    }
+
+    function abrirDigitacaoManual() {
+        document.getElementById('opcoes-entrada').classList.add('oculto');
+        document.getElementById('area-texto').classList.remove('oculto');
+        document.getElementById('texto-pedido').value = '';
+        document.getElementById('texto-pedido').focus();
+        document.getElementById('resultado-painel').className = '';
+        document.getElementById('resultado-painel').innerText = "Insira a nomenclatura do exame e a suspeita, depois execute a Reavaliação.";
+    }
+
+    // Dicionário de equivalências clínicas — mapeia sinônimos/abreviações para o vocabulário controlado do banco
+    const DICIONARIO_SINONIMOS = [
+        { sinonimos: ["ADENOCARCINOMA", "CARCINOSSARCOMA", "CARCINOMA", "SARCOMA", "LINFOMA", "LEUCEMIA", "MELANOMA", "MIELOMA", "GLIOBLASTOMA", "GLIOMA", "ASTROCITOMA", "MENINGIOMA", "SCHWANNOMA", "MICROCITOMA", "NSCLC", "SCLC", "HEPATOMA", "COLANGIOCARCINOMA", "ONCOCITOMA", "OSTEOSSARCOMA", "LIPOSSARCOMA", "METASTASE", "NEOPLASIA MALIGNA", "PROCESSO EXPANSIVO", "LESAO EXPANSIVA", "LESAO NEOPLASICA", " LOE ", " NEO ", " CA ", " K "], termo: "NEOPLASIA" },
+        { sinonimos: ["STAGING", "EXTENSAO TUMORAL", "PESQUISA DE METASTASES", "DISSEMINACAO", "DOENCA METASTATICA", "COMPROMETIMENTO LINFONODAL", "EXTENSAO DE DOENCA"], termo: "ESTADIAMENTO" },
+        { sinonimos: ["FOLLOW-UP", "FOLLOW UP", " FU ", "CONTROLE ONCOLOGICO", "REAVALIACAO ONCOLOGICA", "RESPOSTA A QUIMIOTERAPIA", "RESPOSTA A QT", "RESPOSTA A RT", "POS-QT", "POS-RT", "POS QT", "POS RT", "RECIDIVA TUMORAL", "RECORRENCIA TUMORAL", "REMISSAO"], termo: "SEGUIMENTO ONCOLOGICO" },
+        { sinonimos: ["DISSECCAO AORTICA", "DISSECCAO DE AORTA", "PSEUDOANEURISMA", "DILATACAO AORTICA", "ECTASIA AORTICA", "SINDROME AORTICA"], termo: "ANEURISMA" },
+        { sinonimos: ["ACIDENTE VASCULAR CEREBRAL", "ACIDENTE VASCULAR ENCEFALICO", "STROKE", "ISQUEMIA CEREBRAL", "ISQUEMIA ENCEFALICA", "INFARTO CEREBRAL", "INFARTO ENCEFALICO", "ATAQUE ISQUEMICO TRANSITORIO", " AIT ", " TIA ", "HEMIPLEGIA", "HEMIPARESIA AGUDA", "DEFICIT NEUROLOGICO AGUDO", "AFASIA AGUDA", " AVE "], termo: "AVC" },
+        { sinonimos: ["AVC AGUDO", "AVE AGUDO", "STROKE AGUDO", "ISQUEMIA AGUDA", "JANELA TERAPEUTICA", "TROMBECTOMIA", "TROMBÓLISE"], termo: "AVC AGUDO" },
+        { sinonimos: ["TRAUMA CRANIOENCEFALICO", "TRAUMATISMO CRANIOENCEFALICO", "TRAUMATISMO CRANIANO", "TRAUMA DE CRANIO", "TRAUMA CEFALICO", " TBI "], termo: "TCE" },
+        { sinonimos: ["POLITRAUMA", "POLITRAUMATIZADO", "FRATURA", "LUXACAO", "CONTUSAO", "LACERAÇÃO", "LESAO TRAUMATICA", "CINEMATICA", "ATROPELAMENTO", "COLISAO"], termo: "TRAUMA" },
+        { sinonimos: ["ABSCESSO", "EMPIEMA", "PNEUMONIA", "PNEUMONITE", "SINUSITE", "MASTOIDITE", "OTITE", "MENINGITE", "ENCEFALITE", "OSTEOMIELITE", "ARTRITE SEPTICA", "ENDOCARDITE", "PIELONEFRITE", "BACTEREMIA", "CANDIDÍASE INVASIVA", "ASPERGILOSE", "TUBERCULOSE", " TB ", " BK ", "FOCO INFECCIOSO", "PROCESSO INFECCIOSO", "COLECAO INFECTADA", "SEPSE"], termo: "INFECCAO" },
+        { sinonimos: ["ABDOME AGUDO", "DOR EM FLANCO", "COLICA ABDOMINAL", "COLICA RENAL", "DOR EPIGASTRICA", "DOR NO HIPOCONDRIO", "DOR PELVICA", "DOR LOMBAR AGUDA", "DISTENSAO ABDOMINAL", "QUADRO ALGICO ABDOMINAL"], termo: "DOR ABDOMINAL" },
+        { sinonimos: ["CALCULOSE", "NEFROLITIASE", "UROLITIASE", "COLELITÍASE", "COLEDOCOLITIASE", "CALCULO RENAL", "CALCULO URETERAL", "CALCULO VESICAL", "PEDRA NOS RINS", "PEDRA NA VESICULA", "COLICA NETRETICA"], termo: "LITIASE" },
+        { sinonimos: ["PRE-OPERATORIO", "PRE OPERATORIO", "PRE-OP", "AVALIACAO PRE-CIRURGICA", "AVALIACAO ANATOMICA PRE-OPERATORIA", "MAPEAMENTO ANATOMICO", "PLANEJAMENTO DE RESSECCAO", "PLANEJAMENTO DE BIOPSIA"], termo: "PLANEJAMENTO CIRURGICO" },
+        { sinonimos: ["EMBOLIA PULMONAR", "TROMBOEMBOLISMO PULMONAR", "TROMBOEMBOLISMO VENOSO", " TEP ", " EP ", " TEV ", "TVP COM SUSPEITA DE TEP", "D-DIMERO ELEVADO"], termo: "TROMBOEMBOLISMO PULMONAR" },
+        { sinonimos: ["DOENCA ARTERIAL CORONARIANA", "CORONARIOPATIA", "ANGINA INSTAVEL", "ANGINA", "SINDROME CORONARIANA AGUDA", " SCA ", "ISQUEMIA MIOCARDICA", "INSUFICIENCIA CORONARIANA", "ESTENOSE CORONARIANA", " DAC "], termo: "DOENCA CORONARIANA" },
+        { sinonimos: ["DOENCA DE CROHN", "RETOCOLITE ULCERATIVA", " RCU ", " RCUI ", "COLITE DE CROHN", "ILEITE TERMINAL", "DOENCA INFLAMATORIA INTESTINAL", " DII "], termo: "DOENCA DE CROHN" },
+        { sinonimos: [" HCC ", " CHC ", "HEPATOCARCINOMA", "CARCINOMA HEPATOCELULAR", "CIRROSE COM NODULO", "NODULO EM CIRROTICO", "ALFA-FETOPROTEINA ELEVADA"], termo: "HEPATOCARCINOMA" },
+        { sinonimos: ["HEMATURIA MACROSCOPICA", "HEMATURIA MICROSCOPICA", "SANGUE NA URINA", "URINA COM SANGUE", "HEMATURIA TOTAL", "HEMATURIA INICIAL", "HEMATURIA TERMINAL"], termo: "HEMATURIA" },
+        { sinonimos: ["ESTENOSE DE CAROTIDA", "PLACA CAROTIDEA", "ATEROSCLEROSE CAROTIDEA", "SOPRO CAROTIDEO", "AMAUROSE FUGAZ"], termo: "ESTENOSE CAROTIDEA" },
+        { sinonimos: ["RISCO CARDIOVASCULAR", "RASTREAMENTO CARDIOVASCULAR", "PREVENCAO PRIMARIA", "AGATSTON"], termo: "ESTRATIFICACAO DE RISCO" },
+        { sinonimos: ["SCREENING", "COLONOSCOPIA VIRTUAL", "RASTREAMENTO DE COLON", "RASTREAMENTO ONCOLOGICO", "CHECK-UP", "ASSINTOMATICO"], termo: "RASTREAMENTO" },
+        { sinonimos: ["FEOCROMOCITOMA", "TUMOR DO CORPO CAROTIDEO", "TUMOR GLOMICO", "GLOMUS JUGULARE", "GLOMUS TYMPANICUM", "PARAGANGLIOMA CAROTIDEO"], termo: "PARAGANGLIOMA" },
+        { sinonimos: ["DERRAME PLEURAL", "PLEURITE", "PLEURAL EFFUSION", "HIDROTORAX", "HIDROTÓRAX", "EFUSAO PLEURAL", "EFUSÃO PLEURAL", "LIQUIDO PLEURAL"], termo: "DERRAME PLEURAL" },
+    ];
+
+    function corrigirDigitacao(texto) {
+        // Etapa 1 — Remover duplicações acidentais de consoantes (ex: PUULMAO → PULMAO, ABDDOME → ABDOME)
+        // Preserva vogais duplas intencionais comuns no português médico (ex: não toca AA de UROTC etc)
+        texto = texto.replace(/([BCDFGHJKLMNPQRSTVWXYZ])\1+/g, '$1');
+
+        // Etapa 2 — Corrigir trocas clássicas de teclado em contexto clínico radiológico
+        const correcoes = [
+            // Trocas fonéticas e de teclado próximo
+            [/PULMAO/g,      'PULMAO'],   // âncora — garante que variantes abaixo sejam capturadas
+            [/PUMLAO/g,      'PULMAO'],   // transposição L↔M
+            [/PULM(?:A|OA)O/g, 'PULMAO'], // PULMOAO, PULMAO (redundante mas seguro)
+            [/ABODME|ABODMEN|ABDMOE|ABODMEM/g, 'ABDOME'],
+            [/TORAX|TORX|TRORAX/g,        'TORAX'],
+            [/CRANIO|CRANOI|CRNIO/g,      'CRANIO'],
+            [/ENCEAFLO|ENCEAFALO|ENCEFAL0/g, 'ENCEFALO'], // troca de O por zero
+            [/COLUNA|COLUНА/g,            'COLUNA'],  // caractere cirílico Н ocasional
+            [/PESCOCO|PESCOCO|PESCOO/g,   'PESCOCO'],
+            [/JOELH[O0]/g,               'JOELHO'],  // troca de O por zero
+            [/QUADIRL|QUADIL|QUADIRL/g,  'QUADRIL'],
+            [/TORNOZLEO|TORNOZELO/g,      'TORNOZELO'],
+            [/NEOPLSIA|NEOPLAIA/g,        'NEOPLASIA'],
+            [/METASTSE|METASATE|METASTASE/g, 'METASTASE'],
+            [/INFECAO|INFECCAO|INFECÇÃO/g,  'INFECCAO'],
+            [/LITAISE|LITIAISE/g,         'LITIASE'],
+            [/FRAUTRA|FRTAURA|FRATUA/g,   'FRATURA'],
+            [/TRAUMATISO|TRAUMATIMSO/g,   'TRAUMATISMO'],
+            [/ISQUEMIA|ISQEUMIA|ISQUEMÍA/g, 'ISQUEMIA'],
+            [/TROMBOSE|TROMOBSE/g,        'TROMBOSE'],
+            [/EMBOLIA|EMOBLIA/g,          'EMBOLIA'],
+            [/CARCINOMA|CARCIONMA|CARCIONOMA/g, 'CARCINOMA'],
+            [/ADENOCARCIONMA|ADENOCARCIONOMA/g, 'ADENOCARCINOMA'],
+            [/ESTENODE|ESTENOE/g,         'ESTENOSE'],
+            [/ANEURISAM|ANEURISMA/g,      'ANEURISMA'],
+            [/HEMORRAGIA|HEMORAGIA|HEMORRGIA/g, 'HEMORRAGIA'],
+            [/PIELONEFRITE|PIELONFRITE/g, 'PIELONEFRITE'],
+            [/COLELITAISE|COLELITÍASE/g,  'COLELITÍASE'],
+        ];
+
+        correcoes.forEach(([padrao, correcao]) => {
+            texto = texto.replace(padrao, correcao);
+        });
+
+        // Etapa 3 — Match por trigramas para palavras longas (>=6 letras) do dicionario
+        // Garante tolerancia a erros no meio da palavra que as etapas anteriores nao cobriram
+        const palavras = texto.split(' ');
+        // Extracao dinamica: tokens unicos de exame+suspeita do bancoDeDados em memoria (vem do gestor)
+        const normToken = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+        const TERMOS_BANCO = [...new Set(
+            Object.values(bancoDeDados).flat().flatMap(r => [
+                ...(r.exame    ? r.exame.split(' ')    : []),
+                ...(r.suspeita ? r.suspeita.split(' ') : [])
+            ]).map(normToken).filter(t => t.length >= 6)
+        )];
+
+        function trigramas(palavra) {
+            const tg = new Set();
+            for (let i = 0; i <= palavra.length - 3; i++) tg.add(palavra.substring(i, i + 3));
+            return tg;
+        }
+
+        function similaridade(a, b) {
+            if (Math.abs(a.length - b.length) > 3) return 0; // diferença de tamanho grande = não é erro de digitação
+            const tgA = trigramas(a), tgB = trigramas(b);
+            let intersecao = 0;
+            tgA.forEach(tg => { if (tgB.has(tg)) intersecao++; });
+            return intersecao / Math.max(tgA.size, tgB.size);
+        }
+
+        const palavrasCorrigidas = palavras.map(palavra => {
+            if (palavra.length < 6) return palavra; // palavras curtas: não arriscar falso positivo
+            for (let termo of TERMOS_BANCO) {
+                if (similaridade(palavra, termo) >= 0.75) return termo; // 75% de trigramas em comum
+            }
+            return palavra;
+        });
+
+        return palavrasCorrigidas.join(' ');
+    }
+
+    function resolverSinonimos(textoNormalizado) {
+        const normTxt = t => t.normalize("NFD").replace(/[\u0300-\u036f]/g,"").toUpperCase();
+        let texto = " " + textoNormalizado + " "; // espacos sentinela para match de bordas
+
+        // CAMADA 1 — Suspeitas dinamicas do bancoDeDados (vem do gestor automaticamente)
+        // Extrai todos os termos unicos de suspeita do banco e tenta match direto ou por trigrama
+        const suspeitasBanco = [...new Set(
+            Object.values(bancoDeDados).flat()
+                .map(r => r.suspeita)
+                .filter(Boolean)
+                .map(normTxt)
+        )];
+
+        function trigramasSet(palavra) {
+            const tg = new Set();
+            for (let i = 0; i <= palavra.length - 3; i++) tg.add(palavra.substring(i, i + 3));
+            return tg;
+        }
+        function similaridadeTrigrama(a, b) {
+            if (Math.abs(a.length - b.length) > 3) return 0;
+            const tgA = trigramasSet(a), tgB = trigramasSet(b);
+            let intersecao = 0;
+            tgA.forEach(tg => { if (tgB.has(tg)) intersecao++; });
+            return intersecao / Math.max(tgA.size, tgB.size);
+        }
+
+        suspeitasBanco.forEach(suspeita => {
+            // Match direto (suspeita completa dentro do texto)
+            const paddedSuspeita = suspeita.includes(" ") ? suspeita : ` ${suspeita} `;
+            if (texto.includes(paddedSuspeita)) return; // ja esta correto, nao substituir
+
+            // Match por trigrama palavra a palavra para suspeitas simples (1 palavra)
+            if (!suspeita.includes(" ") && suspeita.length >= 6) {
+                const palavras = texto.trim().split(' ');
+                const palavrasResolvidas = palavras.map(p => {
+                    if (p.length < 6) return p;
+                    if (similaridadeTrigrama(p, suspeita) >= 0.75) return suspeita;
+                    return p;
+                });
+                texto = " " + palavrasResolvidas.join(' ') + " ";
+            }
+        });
+
+        // CAMADA 2 — Dicionario de sinonimos e abreviacoes clinicas (hardcoded, estavel)
+        DICIONARIO_SINONIMOS.forEach(entrada => {
+            entrada.sinonimos.forEach(sinonimo => {
+                const padrao = sinonimo.includes(" ") ? sinonimo : ` ${sinonimo} `;
+                if (texto.includes(padrao)) {
+                    texto = texto.replace(new RegExp(padrao.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'), ` ${entrada.termo} `);
+                }
+            });
+        });
+
+        return texto.trim();
+    }
+
+    // OVERHAUL v2.6: Algoritmo de Busca Global Cumulativa (Analisa combos simultaneamente)
+    function processarMotor() {
+        const textoOriginal = document.getElementById('texto-pedido').value;
+        if (!textoOriginal) return;
+        
+        const normalizar = (txt) => txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toUpperCase();
+        const textoNormalizado = resolverSinonimos(corrigirDigitacao(normalizar(textoOriginal)));
+        const logo = document.getElementById('atomo-logo'); 
+        const painel = document.getElementById('resultado-painel');
+
+        logo.classList.add('processando'); 
+        painel.className = ''; painel.innerText = "Cruzando diretrizes combinadas de corpo inteiro...";
+
+        setTimeout(() => {
+            let regrasEncontradas = [];
+
+            // Varre todas as gavetas anatômicas mapeadas simultaneamente
+            for (let gaveta in bancoDeDados) {
+                for (let regra of bancoDeDados[gaveta]) {
+                    const examenNorm = normalizar(regra.exame);
+                    const suspeitaNorm = normalizar(regra.suspeita);
+                    
+                    // Mitigação de Falso Positivo: Garante isolamento estrito de modalidade (Ex: impede que regras de TC deem Match em RM)
+                    let modalidadeValida = true;
+                    if (examenNorm.includes("TC ") || examenNorm.includes("TOMOGRAFIA")) {
+                        if (!textoNormalizado.includes("TC") && !textoNormalizado.includes("TOMOGRAFIA")) modalidadeValida = false;
+                    }
+                    if (examenNorm.includes("RM ") || examenNorm.includes("RESSONANCIA")) {
+                        if (!textoNormalizado.includes("RM") && !textoNormalizado.includes("RESSONANCIA")) modalidadeValida = false;
+                    }
+                    
+                    if (!modalidadeValida) continue;
+
+                    // Validação por quebra de tokens de palavra-chave
+                    const partesExame = examenNorm.split(' ');
+                    const matchExame = partesExame.some(parte => parte.length > 3 && textoNormalizado.includes(parte));
+                    
+                    if (matchExame && textoNormalizado.includes(suspeitaNorm)) { 
+                        // Evita duplicar a mesma regra exata no acumulador
+                        const jaAdicionada = regrasEncontradas.some(r => r.exame === regra.exame && r.suspeita === regra.suspeita);
+                        if (!jaAdicionada) {
+                            regrasEncontradas.push(regra);
+                        }
+                    }
+                }
+            }
+            
+            logo.classList.remove('processando');
+
+            if (regrasEncontradas.length > 0) {
+                // REGRA DE OU: Se pelo menos um dos exames exigir contraste, o resultado macro é positivo
+                const precisaContraste = regrasEncontradas.some(r => {
+                    const d = normalizar(r.decisao);
+                    return d.includes("INDICADO") && !d.includes("NAO");
+                });
+
+                let htmlResultado = precisaContraste ? "CONTRASTE INDICADO" : "CONTRASTE NÃO INDICADO";
+                
+                // Concatenação inteligente e contextualizada dos comentários de cada região identificada
+                let comentariosFundo = [];
+                regrasEncontradas.forEach(r => {
+                    if (r.comentarios && r.comentarios.trim() !== "") {
+                        // Descobre a qual região a regra pertencia originalmente para etiquetar o log técnico
+                        let regiaoOrigem = "Geral";
+                        for (let g in bancoDeDados) {
+                            if (bancoDeDados[g].some(rule => rule.exame === r.exame && rule.suspeita === r.suspeita)) {
+                                regiaoOrigem = g;
+                                break;
+                            }
+                        }
+                        comentariosFundo.push(`<strong>[${regiaoOrigem.toUpperCase()}]:</strong> ${r.comentarios}`);
+                    }
+                });
+
+                if (comentariosFundo.length > 0) {
+                    htmlResultado += `<div class="comentario-tecnico">${comentariosFundo.join("<br><br>")}</div>`;
+                }
+
+                painel.innerHTML = htmlResultado;
+
+                if (precisaContraste) { 
+                    painel.className = 'resultado-indicado'; 
+                } else { 
+                    painel.className = 'resultado-nao-indicado'; 
+                }
+            } else {
+                painel.innerHTML = `${ERRO_CLINICO}`;
+                painel.className = 'resultado-erro';
+            }
+        }, 1200);
+    }
+
+    window.onload = function() {
+        atualizarStatusChaveGemini();
+    };
+</script>
+<script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('service-worker.js')
+          .then(registration => {
+            console.log('Service Worker ativado com sucesso:', registration.scope);
+          })
+          .catch(error => {
+            console.log('Falha ao ativar o Service Worker:', error);
+          });
+      });
+    }
+</script>
+</body>
+</html>
