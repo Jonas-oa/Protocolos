@@ -644,7 +644,7 @@ const bancoDeDados = {
             "comentarios": "Estadiamentos torácicos gerais (ex: próstata, cólon) sem indicação de contraste pelo protocolo."
         }
     ],
-        "Pelve": [
+    "Pelve": [
         {
             "exame": "TC DE PELVE",
             "suspeita": "APENDICITE AGUDA",
@@ -785,126 +785,276 @@ const bancoDeDados = {
 };
 
 const dicionarioMotor = [
-
     {
         "termo": "PNEUMONIA COMPLICADA",
-        "sinonimos": ["PNEUMONIA GRAVE", "EMPIEMA", "PNEUMONIA NECROTIZANTE"]
+        "sinonimos": [
+            "PNEUMONIA GRAVE",
+            "EMPIEMA",
+            "PNEUMONIA NECROTIZANTE"
+        ]
     },
     {
         "termo": "PNEUMONIA SIMPLES",
-        "sinonimos": ["PNEUMONIA", "CONSOLIDACAO", "BRONCOPNEUMONIA", "INFECCAO PULMONAR", "BRONQUITE"]
+        "sinonimos": [
+            "PNEUMONIA",
+            "CONSOLIDACAO",
+            "BRONCOPNEUMONIA",
+            "INFECCAO PULMONAR",
+            "BRONQUITE"
+        ]
     },
     {
         "termo": "DERRAME PLEURAL",
-        "sinonimos": ["COLECAO PLEURAL", "DERRAME LAMINAR", "DERRAME LOCULADO", "DERRAME CISSURAL"]
+        "sinonimos": [
+            "COLECAO PLEURAL",
+            "DERRAME LAMINAR",
+            "DERRAME LOCULADO",
+            "DERRAME CISSURAL"
+        ]
     },
     {
         "termo": "ABSCESSO PULMONAR",
-        "sinonimos": ["ABSCESSO NO PULMAO", "CAVIDADE PULMONAR", "COLECAO INFECCIOSA PULMONAR"]
+        "sinonimos": [
+            "ABSCESSO NO PULMAO",
+            "CAVIDADE PULMONAR",
+            "COLECAO INFECCIOSA PULMONAR"
+        ]
     },
     {
         "termo": "DOENÇA PULMONAR INTERSTICIAL OU FIBROSE",
-        "sinonimos": ["FIBROSE PULMONAR", "PNEUMONITE", "DPI", "DOENCA INTERSTICIAL", "INFILTRADO INTERSTICIAL", "PNEUMOPATIA"]
+        "sinonimos": [
+            "FIBROSE PULMONAR",
+            "PNEUMONITE",
+            "DPI",
+            "DOENCA INTERSTICIAL",
+            "INFILTRADO INTERSTICIAL",
+            "PNEUMOPATIA"
+        ]
     },
     {
         "termo": "NEOPLASIA DE MAMA, ESOFAGO OU MEDIASTINO",
-        "sinonimos": ["CA DE MAMA", "CANCER DE MAMA", "CA DE ESOFAGO", "CANCER DE ESOFAGO", "TUMOR DE MEDIASTINO", "MASSA MEDIASTINAL", "LINFOMA MEDIASTINAL", "ESTADIAMENTO ONCOLOGICO DE MAMA", "ESTADIAMENTO MAMA"]
+        "sinonimos": [
+            "CA DE MAMA",
+            "CANCER DE MAMA",
+            "CA DE ESOFAGO",
+            "CANCER DE ESOFAGO",
+            "TUMOR DE MEDIASTINO",
+            "MASSA MEDIASTINAL",
+            "LINFOMA MEDIASTINAL",
+            "ESTADIAMENTO ONCOLOGICO DE MAMA",
+            "ESTADIAMENTO MAMA"
+        ]
     },
     {
         "termo": "NEOPLASIA PULMONAR",
-        "sinonimos": ["CA DE PULMAO", "CANCER DE PULMAO", "MASSA PULMONAR", "NEOPLASIA DE PULMAO", "TUMOR PULMONAR"]
+        "sinonimos": [
+            "CA DE PULMAO",
+            "CANCER DE PULMAO",
+            "MASSA PULMONAR",
+            "NEOPLASIA DE PULMAO",
+            "TUMOR PULMONAR"
+        ]
     },
     {
         "termo": "TROMBOEMBOLISMO PULMONAR (TEP)",
-        "sinonimos": ["TEP", "EMBOLIA PULMONAR", "TROMBOSE PULMONAR"]
+        "sinonimos": [
+            "TEP",
+            "EMBOLIA PULMONAR",
+            "TROMBOSE PULMONAR"
+        ]
     },
     {
         "termo": "ESTADIAMENTO ONCOLOGICO GERAL",
-        "sinonimos": ["ESTADIAMENTO", "PESQUISA DE METASTASE", "CONTROLE ONCOLOGICO", "ESTADIAMENTO ONCOLOGICO"]
+        "sinonimos": [
+            "ESTADIAMENTO",
+            "PESQUISA DE METASTASE",
+            "CONTROLE ONCOLOGICO",
+            "ESTADIAMENTO ONCOLOGICO"
+        ]
     },
-
     {
         "termo": "APENDICITE AGUDA",
-        "sinonimos": ["SUSPEITA DE APENDICITE", "DOR EM FOSSA ILIACA DIREITA", "FID", "DOR NO APENDICE"]
+        "sinonimos": [
+            "SUSPEITA DE APENDICITE",
+            "DOR EM FOSSA ILIACA DIREITA",
+            "FID",
+            "DOR NO APENDICE"
+        ]
     },
     {
         "termo": "DIVERTICULITE AGUDA",
-        "sinonimos": ["DIVERTICULITE", "DOR EM FOSSA ILIACA ESQUERDA", "FIE", "DIVERTICULOS INFLAMADOS"]
+        "sinonimos": [
+            "DIVERTICULITE",
+            "DOR EM FOSSA ILIACA ESQUERDA",
+            "FIE",
+            "DIVERTICULOS INFLAMADOS"
+        ]
     },
     {
         "termo": "CÓLICA NEFRÉTICA OU LITÍASE RENAL",
-        "sinonimos": ["COLICA RENAL", "CALCULO RENAL", "PEDRA NOS RINS", "LITIASE RENAL", "UROLITIASE", "NEFROLITIASE"]
+        "sinonimos": [
+            "COLICA RENAL",
+            "CALCULO RENAL",
+            "PEDRA NOS RINS",
+            "LITIASE RENAL",
+            "UROLITIASE",
+            "NEFROLITIASE"
+        ]
     },
     {
         "termo": "PANCREATITE AGUDA OU COMPLICAÇÕES",
-        "sinonimos": ["PANCREATITE", "INFLAMACAO NO PANCREAS"]
+        "sinonimos": [
+            "PANCREATITE",
+            "INFLAMACAO NO PANCREAS"
+        ]
     },
     {
         "termo": "TRAUMA ABDOMINAL (FÍGADO, BAÇO OU RINS)",
-        "sinonimos": ["TRAUMA FECHADO", "CONTUSAO ABDOMINAL", "ACIDENTE AUTOMOVILISTICO", "TRAUMA HEPATICO", "TRAUMA ESPLENICO"]
+        "sinonimos": [
+            "TRAUMA FECHADO",
+            "CONTUSAO ABDOMINAL",
+            "ACIDENTE AUTOMOVILISTICO",
+            "TRAUMA HEPATICO",
+            "TRAUMA ESPLENICO"
+        ]
     },
     {
         "termo": "MASSA OU NÓDULO ADRENAL (INCIDENTALOMA)",
-        "sinonimos": ["NODULO NA SUPRARENAL", "ADENOMA ADRENAL", "MASSA ADRENAL", "INCIDENTALOMA"]
+        "sinonimos": [
+            "NODULO NA SUPRARENAL",
+            "ADENOMA ADRENAL",
+            "MASSA ADRENAL",
+            "INCIDENTALOMA"
+        ]
     },
-
     {
         "termo": "TCE COM PERDA DE CONSCIÊNCIA",
-        "sinonimos": ["TCE", "TRAUMATISMO CRANIANO", "PANCADA NA CABECA", "TRAUMA CRANIOENCEFALICO"]
+        "sinonimos": [
+            "TCE",
+            "TRAUMATISMO CRANIANO",
+            "PANCADA NA CABECA",
+            "TRAUMA CRANIOENCEFALICO"
+        ]
     },
     {
         "termo": "SUSPEITA DE AVC ISQUÊMICO AGUDO",
-        "sinonimos": ["AVCI", "AVC", "DERRAME CEREBRAL", "DEFICIT NEUROLOGICO AGUDO", "ISQUEMIA CEREBRAL"]
+        "sinonimos": [
+            "AVCI",
+            "AVC",
+            "DERRAME CEREBRAL",
+            "DEFICIT NEUROLOGICO AGUDO",
+            "ISQUEMIA CEREBRAL"
+        ]
     },
     {
         "termo": "SUSPEITA DE AVC HEMORRÁGICO",
-        "sinonimos": ["AVCH", "HEMORRAGIA CEREBRAL", "SANGRAMENTO INTRACRANIANO", "HEMATOMA CEREBRAL"]
+        "sinonimos": [
+            "AVCH",
+            "HEMORRAGIA CEREBRAL",
+            "SANGRAMENTO INTRACRANIANO",
+            "HEMATOMA CEREBRAL"
+        ]
     },
     {
         "termo": "CEFALEIA SÚBITA E DE FORTE INTENSIDADE",
-        "sinonimos": ["CEFALEIA THUNDERCLAP", "DOR DE CABECA SUBITA", "CEFALEIA EM TROVOADA", "PIOR DOR DE CABECA DA VIDA"]
+        "sinonimos": [
+            "CEFALEIA THUNDERCLAP",
+            "DOR DE CABECA SUBITA",
+            "CEFALEIA EM TROVOADA",
+            "PIOR DOR DE CABECA DA VIDA"
+        ]
     },
-
     {
         "termo": "LOMBALGIA OU CIATALGIA (HÉRNIA DE DISCO)",
-        "sinonimos": ["DOR LOMBAR", "DOR CIATICA", "HERNIA DISCAL", "PROTRUSAO DISCAL", "CIATALGIA", "LOMBALGIA"]
+        "sinonimos": [
+            "DOR LOMBAR",
+            "DOR CIATICA",
+            "HERNIA DISCAL",
+            "PROTRUSAO DISCAL",
+            "CIATALGIA",
+            "LOMBALGIA"
+        ]
     },
     {
         "termo": "TRAUMA CERVICAL / CHICOTE",
-        "sinonimos": ["TRAUMA NA COLUNA", "EFEITO CHICOTE", "DOR CERVICAL POS TRAUMA", "WHIPLASH"]
+        "sinonimos": [
+            "TRAUMA NA COLUNA",
+            "EFEITO CHICOTE",
+            "DOR CERVICAL POS TRAUMA",
+            "WHIPLASH"
+        ]
     },
     {
         "termo": "SUSPEITA DE ESPONDILODISCITE OU OSTEOMIELITE",
-        "sinonimos": ["INFECCAO NA COLUNA", "DISCITE", "OSTEOMIELITE VERTEBRAL", "ESPONDILODISCITE"]
+        "sinonimos": [
+            "INFECCAO NA COLUNA",
+            "DISCITE",
+            "OSTEOMIELITE VERTEBRAL",
+            "ESPONDILODISCITE"
+        ]
     },
     {
         "termo": "TRAUMA COMPLEXO OU FRATURA ARTICULAR",
-        "sinonimos": ["FRATURA COMINUTIVA", "LUXACAO ARTICULAR", "FRATURA DE BACIA", "FRATURA COMPLEXA"]
+        "sinonimos": [
+            "FRATURA COMINUTIVA",
+            "LUXACAO ARTICULAR",
+            "FRATURA DE BACIA",
+            "FRATURA COMPLEXA"
+        ]
     },
-
     {
         "termo": "ANEURISMA DE AORTA (PLANEJAMENTO EVAR/TEVAR)",
-        "sinonimos": ["ANEURISMA AORTICO", "DILATACAO DA AORTA", "AORTA ABDOMINAL DILATADA", "AAA"]
+        "sinonimos": [
+            "ANEURISMA AORTICO",
+            "DILATACAO DA AORTA",
+            "AORTA ABDOMINAL DILATADA",
+            "AAA"
+        ]
     },
     {
         "termo": "DISSECÇÃO AÓRTICA (TIPO A OU B)",
-        "sinonimos": ["DISSECCAO DE AORTA", "RASGO NA AORTA", "SINDROME AORTICA AGUDA"]
+        "sinonimos": [
+            "DISSECCAO DE AORTA",
+            "RASGO NA AORTA",
+            "SINDROME AORTICA AGUDA"
+        ]
     },
     {
         "termo": "ISQUEMIA AGUDA OU TRAUMA VASCULAR",
-        "sinonimos": ["PE FRIO", "PULSO AUSENTE", "OCLUSAO ARTERIAL", "TROMBOSE ARTERIAL", "EMBOLIA ARTERIAL"]
+        "sinonimos": [
+            "PE FRIO",
+            "PULSO AUSENTE",
+            "OCLUSAO ARTERIAL",
+            "TROMBOSE ARTERIAL",
+            "EMBOLIA ARTERIAL"
+        ]
     },
-
     {
         "termo": "ABSCESSO",
-        "sinonimos": ["COLECAO PURULENTA", "INFECCAO COM NECROSE", "COLECAO INFECCIOSA", "ABSCESSO HEPATICO", "ABSCESSO ESPLENICO"]
+        "sinonimos": [
+            "COLECAO PURULENTA",
+            "INFECCAO COM NECROSE",
+            "COLECAO INFECCIOSA",
+            "ABSCESSO HEPATICO",
+            "ABSCESSO ESPLENICO"
+        ]
     },
     {
         "termo": "SINUSITE AGUDA COM SUSPEITA DE COMPLICAÇÃO",
-        "sinonimos": ["SINUSITE COMPLICADA", "CELULITE ORBITARIA POS SINUSITE", "SINUSITE COM COMPLICACAO"]
+        "sinonimos": [
+            "SINUSITE COMPLICADA",
+            "CELULITE ORBITARIA POS SINUSITE",
+            "SINUSITE COM COMPLICACAO"
+        ]
     },
     {
         "termo": "SINUSITE DE REPETIÇÃO OU CRÔNICA",
-        "sinonimos": ["SINUSITE CRONICA", "SINUSITE SIMPLES", "RINOSSINUSITE", "SINUSITE", "POLIPOSE NASAL"]
+        "sinonimos": [
+            "SINUSITE CRONICA",
+            "SINUSITE SIMPLES",
+            "RINOSSINUSITE",
+            "SINUSITE",
+            "POLIPOSE NASAL"
+        ]
     }
 ];
