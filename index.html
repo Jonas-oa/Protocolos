@@ -12,7 +12,6 @@
     <link href="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.css" rel="stylesheet">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/cropperjs/1.5.13/cropper.min.js" defer></script>
     
-    <!-- Fallback estático: Será sobreposto se o Gestor carregar dados do GitHub -->
     <script src="protocolos.js" defer></script>
 
     <script>
@@ -327,13 +326,71 @@
             .anatomy-panel { position: static; padding: 14px 10px; } .body-svg-wrap { max-width: 260px; margin: 0 auto; }
             .modal-overlay { align-items: flex-end; padding: 0; } .modal { border-radius: var(--radius-2xl) var(--radius-2xl) 0 0; max-width: 100%; max-height: 90vh; overflow-y: auto; transform: translateY(100%); } .modal-overlay.aberto .modal { transform: translateY(0); }
         }
+
+        /* ── COMPONENTES EXPANSÍVEIS (ACCORDIONS) ── */
+        details.admin-collapse {
+            background: var(--surface-raised);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-xl);
+            margin-bottom: 12px;
+            transition: border-color 0.2s, background 0.2s;
+        }
+
+        details.admin-collapse[open] {
+            border-color: rgba(240, 165, 0, 0.28); /* Borda dourada ao expandir */
+            background: linear-gradient(135deg, rgba(240,165,0,0.02), var(--surface-raised));
+        }
+
+        details.admin-collapse > summary {
+            padding: 16px;
+            cursor: pointer;
+            color: var(--amber);
+            font-size: 0.68rem;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            font-weight: 700;
+            list-style: none;
+            user-select: none;
+        }
+
+        /* Ocultar a seta padrão do summary no Safari/Chrome */
+        details.admin-collapse > summary::-webkit-details-marker {
+            display: none;
+        }
+
+        /* Ícone customizado de expansão */
+        details.admin-collapse > summary::after {
+            content: '+';
+            font-size: 1.4rem;
+            font-weight: 300;
+            line-height: 1;
+            transition: transform 0.3s var(--ease-spring);
+            color: var(--muted);
+        }
+
+        details.admin-collapse[open] > summary::after {
+            transform: rotate(45deg);
+            color: var(--amber);
+        }
+
+        details.admin-collapse .collapse-content {
+            padding: 0 16px 16px;
+            animation: fadeIn 0.3s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(-4px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 </head>
 <body>
 
 <div class="container" id="main-container">
 
-    <!-- ══ HEADER UNIVERSAL ══ -->
     <header>
         <button class="btn-icon btn-tema" id="btn-tema" onclick="alternarTema()" aria-label="Alternar tema">
             <svg class="icon-moon" xmlns="http://www.w3.org/2000/svg" width="19" height="19" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z"/></svg>
@@ -358,7 +415,6 @@
         </button>
     </header>
 
-    <!-- ══ TELA 1: OPERADOR (MOTOR) ══ -->
     <div id="tela-operador" style="width:100%; display:flex; flex-direction:column; gap:14px;">
         <div class="module-box">
             <h3>
@@ -420,11 +476,10 @@
         </div>
     </div>
 
-    <!-- ══ TELA 2: PAINEL DE CONTROLE (ADMIN LOCAL) ══ -->
-    <div class="module-box admin-box oculto" id="painel-admin">
+    <div class="module-box admin-box oculto" id="painel-admin" style="width:100%;">
         <h3>
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 7h-9"/><path d="M14 17H5"/><circle cx="17" cy="17" r="3"/><circle cx="7" cy="7" r="3"/></svg>
-            Painel Local
+            Gestor do Motor
         </h3>
 
         <div class="admin-section" id="alerta-orfaos" style="display:none; border-color: var(--red-border); background: var(--red-dim);">
@@ -434,123 +489,119 @@
             <button class="btn-action btn-danger" onclick="limparOrfaos()" style="margin-top:14px; padding:10px; font-size:0.72rem;">Limpar Registros Locais</button>
         </div>
 
-        <div class="admin-section">
-            <h4>Chave do Processador de Imagem</h4>
-            <input type="password" class="input-motor" id="admin-gemini-key" placeholder="Cole a chave (AIzaSy...)">
-            <button class="btn-action btn-admin" onclick="salvarChaveGemini()">Gravar Localmente</button>
-            <button class="btn-action btn-secundary" onclick="removerChaveGemini()">Remover Chave</button>
-            <div id="status-chave-gemini" style="font-size:0.8rem; color:var(--muted); text-align:center; margin-top:6px; font-weight:500;"></div>
-        </div>
-
-        <div class="admin-section">
-            <h4>Gestão de Protocolos</h4>
-            <button class="btn-action btn-admin" onclick="abrirGestorDinamico()">Abrir Gestor Dinâmico Integrado</button>
-        </div>
-
-        <div class="admin-section">
-            <h4>Log de Auditoria</h4>
-            <div id="log-auditoria"></div>
-        </div>
-
-        <button class="btn-action btn-secundary" style="margin-top:8px;" onclick="fecharAdmin()">← Voltar ao Motor</button>
-    </div>
-
-    <!-- ══ TELA 3: GESTOR DINÂMICO (INTEGRADO) ══ -->
-    <div id="tela-gestor" class="oculto" style="width:100%;">
-        <button class="btn-gestor btn-gestor-muted" style="margin-bottom: 14px;" onclick="fecharGestorDinamico()">← Voltar ao Menu Admin</button>
-
-        <div class="conn-bar">
-            <div class="conn-field"><label>Usuário GitHub</label><input type="text" id="gh-user" placeholder="Ex: jonas-oa" autocomplete="off" spellcheck="false"></div>
-            <div class="conn-field"><label>Repositório</label><input type="text" id="gh-repo" placeholder="Ex: motor-protocolos" autocomplete="off" spellcheck="false"></div>
-            <div class="conn-field wide"><label>Token de Acesso (ghp_...)</label><input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"></div>
-            <button class="btn-gestor btn-gestor-blue" onclick="conectarGitHub()" id="btn-conectar">Conectar / Atualizar Motor</button>
-        </div>
+        <details class="admin-collapse" open>
+            <summary>Conexão Nuvem (GitHub)</summary>
+            <div class="collapse-content">
+                <div class="conn-bar" style="margin-bottom: 0;">
+                    <div class="conn-field"><label>Usuário GitHub</label><input type="text" id="gh-user" placeholder="Ex: jonas-oa" autocomplete="off" spellcheck="false"></div>
+                    <div class="conn-field"><label>Repositório</label><input type="text" id="gh-repo" placeholder="Ex: motor-protocolos" autocomplete="off" spellcheck="false"></div>
+                    <div class="conn-field wide"><label>Token de Acesso (ghp_...)</label><input type="password" id="gh-token" placeholder="ghp_xxxxxxxxxxxxxxxxxxxx" autocomplete="off"></div>
+                    <button class="btn-gestor btn-gestor-blue" onclick="conectarGitHub()" id="btn-conectar" style="width: 100%; margin-top: 8px;">Conectar / Atualizar Motor</button>
+                </div>
+            </div>
+        </details>
 
         <div class="status-bar"><div id="status-msg"></div></div>
 
-        <div class="tabs-nav" id="tabs-nav" style="display:none;">
-            <button class="tab-btn ativo" onclick="mudarAba('tab-anatomia', this)">Anatomia (Protocolos)</button>
-            <button class="tab-btn" onclick="mudarAba('tab-dicionario', this)">Dicionário <span class="badge-orfaos" id="badge-orfaos">0</span></button>
-        </div>
+        <div id="gestor-workspace" style="display:none; margin-bottom: 24px;">
+            <div class="tabs-nav" id="tabs-nav">
+                <button class="tab-btn ativo" onclick="mudarAba('tab-anatomia', this)">Anatomia (Protocolos)</button>
+                <button class="tab-btn" onclick="mudarAba('tab-dicionario', this)">Dicionário <span class="badge-orfaos" id="badge-orfaos">0</span></button>
+            </div>
 
-        <!-- ABA 1: ANATOMIA -->
-        <div class="tab-content ativo" id="tab-anatomia">
-            <div class="workspace">
-                <div class="anatomy-panel">
-                    <p class="anatomy-title">Selecione a região</p>
-                    <div class="body-svg-wrap">
-                        <svg viewBox="0 0 200 520" xmlns="http://www.w3.org/2000/svg">
-                            <!-- Silhueta base -->
-                            <ellipse cx="100" cy="38" rx="28" ry="34" fill="rgba(66,100,140,0.08)" stroke="rgba(100,140,180,0.12)" stroke-width="1"/>
-                            <rect x="88" y="68" width="24" height="18" rx="4" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.1)" stroke-width="1"/>
-                            <path d="M62 86 Q55 90 54 120 L52 200 Q52 210 60 212 L140 212 Q148 210 148 200 L146 120 Q145 90 138 86 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.1)" stroke-width="1"/>
-                            <path d="M62 90 Q48 95 42 130 L38 195 Q37 205 42 207 L52 207 L54 130 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
-                            <path d="M138 90 Q152 95 158 130 L162 195 Q163 205 158 207 L148 207 L146 130 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
-                            <path d="M60 212 Q55 215 56 235 L60 250 L140 250 L144 235 Q145 215 140 212 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
-                            <path d="M60 250 L60 390 Q60 400 68 402 L88 402 Q94 400 94 390 L90 250 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
-                            <path d="M140 250 L140 390 Q140 400 132 402 L112 402 Q106 400 106 390 L110 250 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
-                            
-                            <!-- Zonas -->
-                            <ellipse class="zona" id="zona-cranio" cx="100" cy="38" rx="26" ry="32" onclick="selecionarRegiao('Crânio e SNC')" />
-                            <text class="zona-label" x="136" y="30" text-anchor="start">Crânio</text>
-                            <line x1="126" y1="35" x2="133" y2="30" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
-                            <rect class="zona" id="zona-pescoco" x="83" y="66" width="34" height="22" rx="5" onclick="selecionarRegiao('Face e Pescoço')" />
-                            <text class="zona-label" x="136" y="80" text-anchor="start">Pescoço</text>
-                            <line x1="117" y1="77" x2="133" y2="78" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
-                            <path class="zona" id="zona-torax" d="M66 88 Q55 92 55 115 L55 152 Q55 158 60 160 L140 160 Q145 158 145 152 L145 115 Q145 92 134 88 Z" onclick="selecionarRegiao('Tórax')" />
-                            <text class="zona-label" x="13" y="125" text-anchor="start">Tórax</text>
-                            <line x1="55" y1="125" x2="40" y2="123" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
-                            <rect class="zona" id="zona-col-cervical" x="91" y="88" width="18" height="27" rx="3" onclick="selecionarRegiao('Coluna Cervical')" />
-                            <rect class="zona" id="zona-col-toracica" x="91" y="115" width="18" height="45" rx="0" onclick="selecionarRegiao('Coluna Torácica')" />
-                            <rect class="zona" id="zona-col-lombar" x="91" y="160" width="18" height="53" rx="0" onclick="selecionarRegiao('Coluna Lombar')" />
-                            <rect class="zona" id="zona-col-sacral" x="91" y="213" width="18" height="23" rx="3" onclick="selecionarRegiao('Coluna Sacral')" />
-                            <text class="zona-label" x="136" y="155" text-anchor="start">Coluna</text>
-                            <line x1="109" y1="150" x2="133" y2="153" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
-                            <ellipse class="zona" id="zona-mama" cx="130" cy="135" rx="10" ry="10" onclick="selecionarRegiao('Mama')" />
-                            <ellipse class="zona" id="zona-mama-dir" cx="70" cy="135" rx="10" ry="10" onclick="selecionarRegiao('Mama')" />
-                            <path class="zona" id="zona-abdome" d="M56 160 L56 205 Q56 212 64 213 L136 213 Q144 212 144 205 L144 160 Z" onclick="selecionarRegiao('Abdome')" />
-                            <path class="zona" id="zona-pelve" d="M58 213 Q53 216 54 234 L58 252 L142 252 L146 234 Q147 216 142 213 Z" onclick="selecionarRegiao('Pelve')" />
-                            <path class="zona" id="zona-mmss" d="M42 90 Q38 98 36 130 L34 196 Q34 207 42 209 L54 209 L56 120 L64 88 Z" onclick="selecionarRegiao('Membros Superiores')" />
-                            <path class="zona" id="zona-mmss-dir" d="M158 90 Q162 98 164 130 L166 196 Q166 207 158 209 L146 209 L144 120 L136 88 Z" onclick="selecionarRegiao('Membros Superiores')" />
-                            <path class="zona" id="zona-mmii" d="M60 252 L60 395 Q60 404 68 406 L88 406 Q95 403 95 395 L91 252 Z" onclick="selecionarRegiao('Membros Inferiores')" />
-                            <path class="zona" id="zona-mmii-dir" d="M140 252 L140 395 Q140 404 132 406 L112 406 Q105 403 105 395 L109 252 Z" onclick="selecionarRegiao('Membros Inferiores')" />
-                        </svg>
+            <div class="tab-content ativo" id="tab-anatomia">
+                <div class="workspace">
+                    <div class="anatomy-panel">
+                        <p class="anatomy-title">Selecione a região</p>
+                        <div class="body-svg-wrap">
+                            <svg viewBox="0 0 200 520" xmlns="http://www.w3.org/2000/svg">
+                                <ellipse cx="100" cy="38" rx="28" ry="34" fill="rgba(66,100,140,0.08)" stroke="rgba(100,140,180,0.12)" stroke-width="1"/>
+                                <rect x="88" y="68" width="24" height="18" rx="4" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.1)" stroke-width="1"/>
+                                <path d="M62 86 Q55 90 54 120 L52 200 Q52 210 60 212 L140 212 Q148 210 148 200 L146 120 Q145 90 138 86 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.1)" stroke-width="1"/>
+                                <path d="M62 90 Q48 95 42 130 L38 195 Q37 205 42 207 L52 207 L54 130 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
+                                <path d="M138 90 Q152 95 158 130 L162 195 Q163 205 158 207 L148 207 L146 130 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
+                                <path d="M60 212 Q55 215 56 235 L60 250 L140 250 L144 235 Q145 215 140 212 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
+                                <path d="M60 250 L60 390 Q60 400 68 402 L88 402 Q94 400 94 390 L90 250 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
+                                <path d="M140 250 L140 390 Q140 400 132 402 L112 402 Q106 400 106 390 L110 250 Z" fill="rgba(66,100,140,0.06)" stroke="rgba(100,140,180,0.08)" stroke-width="1"/>
+                                
+                                <ellipse class="zona" id="zona-cranio" cx="100" cy="38" rx="26" ry="32" onclick="selecionarRegiao('Crânio e SNC')" />
+                                <text class="zona-label" x="136" y="30" text-anchor="start">Crânio</text>
+                                <line x1="126" y1="35" x2="133" y2="30" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
+                                <rect class="zona" id="zona-pescoco" x="83" y="66" width="34" height="22" rx="5" onclick="selecionarRegiao('Face e Pescoço')" />
+                                <text class="zona-label" x="136" y="80" text-anchor="start">Pescoço</text>
+                                <line x1="117" y1="77" x2="133" y2="78" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
+                                <path class="zona" id="zona-torax" d="M66 88 Q55 92 55 115 L55 152 Q55 158 60 160 L140 160 Q145 158 145 152 L145 115 Q145 92 134 88 Z" onclick="selecionarRegiao('Tórax')" />
+                                <text class="zona-label" x="13" y="125" text-anchor="start">Tórax</text>
+                                <line x1="55" y1="125" x2="40" y2="123" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
+                                <rect class="zona" id="zona-col-cervical" x="91" y="88" width="18" height="27" rx="3" onclick="selecionarRegiao('Coluna Cervical')" />
+                                <rect class="zona" id="zona-col-toracica" x="91" y="115" width="18" height="45" rx="0" onclick="selecionarRegiao('Coluna Torácica')" />
+                                <rect class="zona" id="zona-col-lombar" x="91" y="160" width="18" height="53" rx="0" onclick="selecionarRegiao('Coluna Lombar')" />
+                                <rect class="zona" id="zona-col-sacral" x="91" y="213" width="18" height="23" rx="3" onclick="selecionarRegiao('Coluna Sacral')" />
+                                <text class="zona-label" x="136" y="155" text-anchor="start">Coluna</text>
+                                <line x1="109" y1="150" x2="133" y2="153" stroke="rgba(107,114,128,0.35)" stroke-width="0.8"/>
+                                <ellipse class="zona" id="zona-mama" cx="130" cy="135" rx="10" ry="10" onclick="selecionarRegiao('Mama')" />
+                                <ellipse class="zona" id="zona-mama-dir" cx="70" cy="135" rx="10" ry="10" onclick="selecionarRegiao('Mama')" />
+                                <path class="zona" id="zona-abdome" d="M56 160 L56 205 Q56 212 64 213 L136 213 Q144 212 144 205 L144 160 Z" onclick="selecionarRegiao('Abdome')" />
+                                <path class="zona" id="zona-pelve" d="M58 213 Q53 216 54 234 L58 252 L142 252 L146 234 Q147 216 142 213 Z" onclick="selecionarRegiao('Pelve')" />
+                                <path class="zona" id="zona-mmss" d="M42 90 Q38 98 36 130 L34 196 Q34 207 42 209 L54 209 L56 120 L64 88 Z" onclick="selecionarRegiao('Membros Superiores')" />
+                                <path class="zona" id="zona-mmss-dir" d="M158 90 Q162 98 164 130 L166 196 Q166 207 158 209 L146 209 L144 120 L136 88 Z" onclick="selecionarRegiao('Membros Superiores')" />
+                                <path class="zona" id="zona-mmii" d="M60 252 L60 395 Q60 404 68 406 L88 406 Q95 403 95 395 L91 252 Z" onclick="selecionarRegiao('Membros Inferiores')" />
+                                <path class="zona" id="zona-mmii-dir" d="M140 252 L140 395 Q140 404 132 406 L112 406 Q105 403 105 395 L109 252 Z" onclick="selecionarRegiao('Membros Inferiores')" />
+                            </svg>
+                        </div>
+                        <button id="zona-sistemico" class="btn-sistemico" onclick="selecionarRegiao('Sistema Completo')">Protocolos Sistêmicos</button>
+                        <div class="legenda">
+                            <div class="legenda-item"><div class="legenda-dot vazia"></div><span>Vazia</span></div>
+                            <div class="legenda-item"><div class="legenda-dot com-dados"></div><span>Com dados</span></div>
+                            <div class="legenda-item"><div class="legenda-dot selecionada"></div><span>Ativa</span></div>
+                        </div>
                     </div>
-                    <button id="zona-sistemico" class="btn-sistemico" onclick="selecionarRegiao('Sistema Completo')">Protocolos Sistêmicos</button>
-                    <div class="legenda">
-                        <div class="legenda-item"><div class="legenda-dot vazia"></div><span>Vazia</span></div>
-                        <div class="legenda-item"><div class="legenda-dot com-dados"></div><span>Com dados</span></div>
-                        <div class="legenda-item"><div class="legenda-dot selecionada"></div><span>Ativa</span></div>
+                    
+                    <div class="protocols-panel" id="protocols-panel">
+                        <div class="empty-state" id="estado-inicial"><p>Aguardando seleção de região.</p></div>
                     </div>
                 </div>
-                
-                <div class="protocols-panel" id="protocols-panel">
-                    <div class="empty-state" id="estado-inicial"><p>Conecte ao GitHub para carregar os protocolos.</p></div>
+            </div>
+
+            <div class="tab-content" id="tab-dicionario">
+                <div class="dic-workspace">
+                    <div class="panel-header">
+                        <div class="panel-region-name"><span class="region-badge">Dicionário Ativo</span><span class="region-count" id="dic-count">0 classes</span></div>
+                        <button class="btn-gestor btn-gestor-blue btn-sm" onclick="abrirModalDic()">Nova Classe Mestra</button>
+                    </div>
+                    <div class="dic-grid" id="dic-grid"></div>
                 </div>
+            </div>
+
+            <div class="action-bar" id="action-bar">
+                <button class="btn-gestor btn-gestor-muted" onclick="recarregarGitHub()">Recarregar</button>
+                <button class="btn-gestor btn-gestor-gold" onclick="comitarTudo()" id="btn-salvar">Salvar na Nuvem (E Aplicar no Motor)</button>
             </div>
         </div>
 
-        <!-- ABA 2: DICIONÁRIO -->
-        <div class="tab-content" id="tab-dicionario">
-            <div class="dic-workspace">
-                <div class="panel-header">
-                    <div class="panel-region-name"><span class="region-badge">Dicionário Ativo</span><span class="region-count" id="dic-count">0 classes</span></div>
-                    <button class="btn-gestor btn-gestor-blue btn-sm" onclick="abrirModalDic()">Nova Classe Mestra</button>
+        <details class="admin-collapse">
+            <summary>Chave do Motor Óptico (Gemini)</summary>
+            <div class="collapse-content">
+                <input type="password" class="input-motor" id="admin-gemini-key" placeholder="Cole a chave (AIzaSy...)">
+                <div class="flex-row">
+                    <button class="btn-action btn-admin" onclick="salvarChaveGemini()" style="margin:0;">Gravar Localmente</button>
+                    <button class="btn-action btn-secundary" onclick="removerChaveGemini()" style="margin:0;">Remover</button>
                 </div>
-                <div class="dic-grid" id="dic-grid"></div>
+                <div id="status-chave-gemini" style="font-size:0.8rem; color:var(--muted); text-align:center; margin-top:12px; font-weight:500;"></div>
             </div>
-        </div>
+        </details>
 
-        <div class="action-bar" id="action-bar" style="display:none;">
-            <button class="btn-gestor btn-gestor-muted" onclick="recarregarGitHub()">Recarregar</button>
-            <button class="btn-gestor btn-gestor-gold" onclick="comitarTudo()" id="btn-salvar">Salvar na Nuvem (E Aplicar no Motor)</button>
-        </div>
+        <details class="admin-collapse">
+            <summary>Log de Auditoria do Sistema</summary>
+            <div class="collapse-content">
+                <div id="log-auditoria"></div>
+            </div>
+        </details>
+
+        <button class="btn-action btn-secundary" style="margin-top:18px;" onclick="fecharAdmin()">← Voltar ao Motor</button>
     </div>
 
-</div><!-- /.container -->
-
-<!-- ══ MODAIS DO GESTOR ══ -->
-<div class="modal-overlay" id="modal-overlay" onclick="fecharModal(event)">
+</div><div class="modal-overlay" id="modal-overlay" onclick="fecharModal(event)">
     <div class="modal" id="modal">
         <div class="modal-header">
             <div><div class="modal-title" id="modal-titulo">Nova Regra</div><div class="modal-region" id="modal-regiao"></div></div>
@@ -604,7 +655,6 @@
     </div>
 </div>
 
-<!-- ══ SCRIPTS UNIFICADOS ══ -->
 <script>
     /* ── VARIÁVEIS GLOBAIS GESTOR E MOTOR ── */
     const ERRO_CLINICO = "Matriz Insuficiente. Reveja as nomenclaturas ou acione o Gestor.";
@@ -680,7 +730,11 @@
             document.getElementById('tela-operador').classList.add('oculto');
             document.getElementById('btn-config').classList.add('oculto');
             document.getElementById('painel-admin').classList.remove('oculto');
-            document.getElementById('app-title').innerText = "Painel de Controle";
+            
+            // Ativa a "largura máxima" da classe modo-gestor no admin unificado
+            document.getElementById('main-container').classList.add('modo-gestor');
+            
+            document.getElementById('app-title').innerText = "Gestor Unificado";
             carregarOrfaosAdmin();
             registrarLog("SISTEMA: Modo Gestor ativado.");
         }
@@ -690,21 +744,11 @@
         document.getElementById('tela-operador').classList.remove('oculto');
         document.getElementById('painel-admin').classList.add('oculto');
         document.getElementById('btn-config').classList.remove('oculto');
-        document.getElementById('app-title').innerText = "Motor de Protocolos";
-    }
-
-    function abrirGestorDinamico() {
-        document.getElementById('painel-admin').classList.add('oculto');
-        document.getElementById('tela-gestor').classList.remove('oculto');
-        document.getElementById('main-container').classList.add('modo-gestor');
-        document.getElementById('app-title').innerText = "Gestor Dinâmico";
-    }
-
-    function fecharGestorDinamico() {
-        document.getElementById('tela-gestor').classList.add('oculto');
-        document.getElementById('painel-admin').classList.remove('oculto');
+        
+        // Remove a largura máxima para voltar a visão normal do motor
         document.getElementById('main-container').classList.remove('modo-gestor');
-        document.getElementById('app-title').innerText = "Painel de Controle";
+        
+        document.getElementById('app-title').innerText = "Motor de Protocolos";
     }
 
     function alternarTema() {
@@ -747,8 +791,7 @@
             // Ativa o estado vivo (RAM) para o Motor principal usar
             liveDataActive = true; 
 
-            document.getElementById('tabs-nav').style.display = 'flex';
-            document.getElementById('action-bar').style.display = 'flex';
+            document.getElementById('gestor-workspace').style.display = 'block';
             renderizarInterfaceGestor();
             renderizarDicionario();
 
